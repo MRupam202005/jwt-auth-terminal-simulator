@@ -94,6 +94,9 @@ const elements = {
     terminalInput: document.getElementById('terminal-input'),
     sessionStatusBadge: document.getElementById('session-status-badge'),
 
+    signingKeyInput: document.getElementById('signing-key-input'),
+    btnResetKey: document.getElementById('btn-reset-key'),
+
     // Controls
     btnLogin: document.getElementById('btn-login'),
     btnRequest: document.getElementById('btn-request'),
@@ -104,6 +107,12 @@ const elements = {
 
     toggleAutoRefresh: document.getElementById('toggle-auto-refresh'),
     toggleServerDelay: document.getElementById('toggle-server-delay'),
+    toggleRtr: document.getElementById('toggle-rtr'),
+
+    configUsername: document.getElementById('config-username'),
+    configRole: document.getElementById('config-role'),
+    configAccessTime: document.getElementById('config-access-time'),
+    configRefreshTime: document.getElementById('config-refresh-time'),
 
     // Storage
     accessTokenBox: document.getElementById('access-token-box'),
@@ -180,6 +189,21 @@ function setupEventListeners() {
                 this.value = '';
             }
         }
+    });
+
+    // Secret Key dynamic editing
+    elements.signingKeyInput.addEventListener('input', function () {
+        const newKey = this.value.trim() || 'jwt-simulator-secret-key';
+        STATE.secretKey = newKey;
+        updateDecoderUI();
+    });
+
+    elements.btnResetKey.addEventListener('click', function () {
+        const defaultKey = 'jwt-simulator-secret-key';
+        elements.signingKeyInput.value = defaultKey;
+        STATE.secretKey = defaultKey;
+        updateDecoderUI();
+        addLog(`[SYSTEM] Secret key reset to default.`, 'system');
     });
 
     // Control buttons clicks
@@ -307,7 +331,7 @@ function executeCommand(rawCommand) {
         clearTerminal();
     } else if (command === 'login') {
         STATE.isProcessing = true;
-        const user = args[0] || 'rupam_dev';
+        const user = args[0] || elements.configUsername.value.trim() || 'rupam_dev';
         addLog(`Initiating HTTP POST /api/login for user: "${user}"...`, 'client');
 
         setTimeout(() => {
@@ -374,7 +398,10 @@ function showHelp() {
 function performLogin(username) {
     // Simulated database query success. We issue standard credentials
     STATE.username = username;
-    STATE.role = username === 'admin' ? 'admin' : 'developer';
+    STATE.role = (username === elements.configUsername.value.trim()) ? elements.configRole.value : (username === 'admin' ? 'admin' : 'developer');
+
+    STATE.accessLifespan = parseInt(elements.configAccessTime.value) || 30;
+    STATE.refreshLifespan = parseInt(elements.configRefreshTime.value) || 90;
 
     addLog(`POST /api/login - credentials verified in database.`, 'server');
 
@@ -564,6 +591,21 @@ function performSilentAutoRefreshRetry(originalPath) {
 
     STATE.accessToken = generateJWT(newAccessPayload, STATE.secretKey);
 
+    if (elements.toggleRtr && elements.toggleRtr.checked) {
+        STATE.refreshTokenExpiresAt = now + STATE.refreshLifespan;
+        const newRefreshPayload = {
+            sub: payload.sub,
+            type: "refresh",
+            iat: now,
+            exp: STATE.refreshTokenExpiresAt
+        };
+        STATE.refreshToken = generateJWT(newRefreshPayload, STATE.secretKey);
+        elements.refreshTokenInput.value = STATE.refreshToken;
+        elements.refreshLength.textContent = `${STATE.refreshToken.length} chars`;
+        elements.btnTamperRefresh.disabled = false;
+        addLog(`POST /api/refresh - [RTR] Issued new Refresh Token. Old one revoked.`, 'server');
+    }
+
     // Update Storage UI
     elements.accessTokenInput.value = STATE.accessToken;
     elements.accessLength.textContent = `${STATE.accessToken.length} chars`;
@@ -638,6 +680,21 @@ function performTokenRefresh(isSilent = false) {
     elements.accessTokenInput.value = STATE.accessToken;
     elements.accessLength.textContent = `${STATE.accessToken.length} chars`;
     elements.btnTamperAccess.disabled = false;
+
+    if (elements.toggleRtr && elements.toggleRtr.checked) {
+        STATE.refreshTokenExpiresAt = now + STATE.refreshLifespan;
+        const newRefreshPayload = {
+            sub: payload.sub,
+            type: "refresh",
+            iat: now,
+            exp: STATE.refreshTokenExpiresAt
+        };
+        STATE.refreshToken = generateJWT(newRefreshPayload, STATE.secretKey);
+        elements.refreshTokenInput.value = STATE.refreshToken;
+        elements.refreshLength.textContent = `${STATE.refreshToken.length} chars`;
+        elements.btnTamperRefresh.disabled = false;
+        addLog(`POST /api/refresh - [RTR] Issued new Refresh Token. Old one revoked.`, 'server');
+    }
 
     addLog(`POST /api/refresh - Refresh Token verified. Generating new Access Token...`, 'server');
     addLog(`HTTP 200 OK - Access Token refreshed. Expiry in ${STATE.accessLifespan}s.`, 'server');

@@ -26,7 +26,10 @@
         <div class="server-config">
             <div class="config-item">
                 <span class="label">Secret Key:</span>
-                <span class="value key-badge" id="signing-key-display">jwt-simulator-secret-key</span>
+                <div class="secret-key-wrapper">
+                    <input type="text" id="signing-key-input" class="key-badge" value="jwt-simulator-secret-key" spellcheck="false" title="Edit Secret Key. Modifying this will instantly invalidate current tokens!">
+                    <button class="btn-small" id="btn-reset-key" title="Reset to default key">&#x21BB;</button>
+                </div>
                 <!-- The Secret key used at the backend to sign tokens like ACCESS_TOKEN & REFRESH_TOKEN -->
             </div>
             <div class="config-item">
@@ -71,6 +74,28 @@
             <!-- Control Center: Quick Action Buttons -->
             <div class="control-panel glass-card">
                 <h3><span class="icon">&#x2699;</span> Simulator Control Center</h3>
+                <div class="login-config-panel">
+                    <div class="config-group">
+                        <label>Username</label>
+                        <input type="text" id="config-username" value="rupam_dev" spellcheck="false">
+                    </div>
+                    <div class="config-group">
+                        <label>Role</label>
+                        <select id="config-role">
+                            <option value="developer">Developer</option>
+                            <option value="admin">Admin</option>
+                            <option value="guest">Guest</option>
+                        </select>
+                    </div>
+                    <div class="config-group">
+                        <label>Access Expiry (s)</label>
+                        <input type="number" id="config-access-time" value="30" min="5" max="3600">
+                    </div>
+                    <div class="config-group">
+                        <label>Refresh Expiry (s)</label>
+                        <input type="number" id="config-refresh-time" value="90" min="15" max="86400">
+                    </div>
+                </div>
                 <div class="control-grid">
                     <button class="btn btn-primary" id="btn-login" title="login command">
                         <span class="btn-icon">Login</span>
@@ -110,6 +135,16 @@
                         <span class="toggle-label">
                             <strong>Simulate Network Delay</strong>
                             <small>Adds a 500ms delay to simulate server api roundtrips</small>
+                        </span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-rtr" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">
+                            <strong>Refresh Token Rotation (RTR)</strong>
+                            <small>Issue a new refresh token on every renewal</small>
                         </span>
                     </div>
                 </div>

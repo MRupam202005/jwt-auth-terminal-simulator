@@ -135,6 +135,13 @@ body {
     font-weight: 500;
 }
 
+.secret-key-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2px;
+}
+
 .key-badge {
     font-family: var(--font-mono);
     color: var(--color-cyan);
@@ -142,6 +149,35 @@ body {
     padding: 2px 8px;
     border-radius: 4px;
     border: 1px solid rgba(6, 182, 212, 0.2);
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input.key-badge {
+    width: 250px;
+}
+
+input.key-badge:focus {
+    background: rgba(6, 182, 212, 0.15);
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+#btn-reset-key {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+#btn-reset-key:hover {
+    color: var(--color-cyan);
 }
 
 .status-online {
@@ -375,6 +411,46 @@ body {
 }
 
 /* Simulator Control Center Panel */
+.login-config-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.config-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.config-group label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.config-group input, .config-group select {
+    background: rgba(2, 4, 10, 0.5);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    padding: 0.4rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.config-group input:focus, .config-group select:focus {
+    border-color: var(--color-cyan);
+}
+
 .control-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
