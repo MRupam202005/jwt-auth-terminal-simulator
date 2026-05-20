@@ -319,7 +319,7 @@ function executeCommand(rawCommand) {
     // Print command entered to the terminal screen
     const cmdLine = document.createElement('div');
     cmdLine.className = 'log-line log-client';
-    cmdLine.innerHTML = `<span class="terminal-prompt">rupam@jwt-sim:~$</span> <strong>${rawCommand}</strong>`;
+    cmdLine.innerHTML = `<span class="terminal-prompt">rupam@jwt-simulator:~$</span> <strong>${rawCommand}</strong>`;
     elements.terminalLogs.appendChild(cmdLine);
     elements.terminalLogs.scrollTop = elements.terminalLogs.scrollHeight;
 

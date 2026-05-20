@@ -1237,7 +1237,18 @@ input:checked + .slider:before {
     }
     .server-config {
         width: 100%;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .secret-key-wrapper {
+        width: 100%;
+    }
+    input.key-badge {
+        width: 100%;
+    }
+    .login-config-panel {
+        grid-template-columns: repeat(2, 1fr);
     }
     .control-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1249,6 +1260,15 @@ input:checked + .slider:before {
         grid-template-columns: 1fr;
     }
     .legend-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 480px) {
+    .login-config-panel {
+        grid-template-columns: 1fr;
+    }
+    .control-grid {
         grid-template-columns: 1fr;
     }
 }
