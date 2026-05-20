@@ -1,6 +1,9 @@
 # Interactive JWT Authentication Terminal Simulator
 
+**🚀 [Play with the Live Simulator Here](https://MRupam202005.github.io/jwt-auth-terminal-simulator/)**
+
 A purely frontend, interactive web application designed to visually simulate the complete JSON Web Token (JWT) authentication lifecycle. Built with HTML, CSS, and Vanilla JavaScript, this tool provides a highly educational, hands-on environment for understanding how JWTs are generated, structured, verified, and refreshed.
+
 
 ## 🚀 Features
 
