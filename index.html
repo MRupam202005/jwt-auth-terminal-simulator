@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive JWT Authentication Terminal Simulator</title>
+    <!-- Modern Typography: Outfit & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;1,300&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="logo-container">
+            <span class="logo-icon">&#x1F512;</span>
+            <div class="logo-text">
+                <h1>JWT Auth Terminal</h1>
+                <p class="subtitle">Interactive Token Lifecycle & Refresh Simulation</p>
+            </div>
+        </div>
+        <div class="server-config">
+            <div class="config-item">
+                <span class="label">Secret Key:</span>
+                <span class="value key-badge" id="signing-key-display">jwt-simulator-secret-key</span>
+                <!-- The Secret key used at the backend to sign tokens like ACCESS_TOKEN & REFRESH_TOKEN -->
+            </div>
+            <div class="config-item">
+                <span class="label">Server Status:</span>
+                <span class="value status-online"><span class="pulse-dot"></span> Online</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- LEFT PANEL: TERMINAL & STORAGE -->
+        <section class="left-panel">
+            <!-- Simulated Terminal Window -->
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-buttons">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <div class="terminal-title">bash - developer-console - node index.js</div>
+                    <div class="terminal-status">
+                        <span id="session-status-badge" class="session-badge status-logged-out">NO ACTIVE SESSION</span>
+                    </div>
+                </div>
+                <div class="terminal-body" id="terminal-logs">
+                    <!-- Logs will stream here dynamically -->
+                    <div class="log-line log-system">Initializing JWT Auth Simulation Environment...</div>
+                    <div class="log-line log-system">Type <span class="cmd-highlight">help</span> to view available
+                        commands.</div>
+                    <div class="log-line log-client"><span class="timestamp">[11:08:00 CLIENT]</span> Ready for user
+                        commands. Use the control panel below or type command.</div>
+                </div>
+                <div class="terminal-input-line">
+                    <span class="terminal-prompt">rupam@jwt-simulator:~$</span>
+                    <input type="text" id="terminal-input" placeholder="Type command (e.g. login) and press Enter..."
+                        autocomplete="off">
+                    <span class="cursor"></span>
+                </div>
+            </div>
+
+            <!-- Control Center: Quick Action Buttons -->
+            <div class="control-panel glass-card">
+                <h3><span class="icon">&#x2699;</span> Simulator Control Center</h3>
+                <div class="control-grid">
+                    <button class="btn btn-primary" id="btn-login" title="login command">
+                        <span class="btn-icon">Login</span>
+                    </button>
+                    <button class="btn btn-success" id="btn-request" title="request /api/user command">
+                        <span class="btn-icon">API Request</span>
+                    </button>
+                    <button class="btn btn-warning" id="btn-expire-access" title="expire-access command">
+                        <span class="btn-icon">Expire Access</span>
+                    </button>
+                    <button class="btn btn-danger" id="btn-expire-both" title="expire-refresh command">
+                        <span class="btn-icon">Expire Both</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btn-refresh" title="refresh-token command">
+                        <span class="btn-icon">Refresh Token</span>
+                    </button>
+                    <button class="btn btn-outline" id="btn-logout" title="logout command">
+                        <span class="btn-icon">Logout</span>
+                    </button>
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle-item">
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-auto-refresh" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">
+                            <strong>Silent Auto-Refresh</strong>
+                            <small>Automatically refresh access token on 401 Unauthorized</small>
+                        </span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-server-delay" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">
+                            <strong>Simulate Network Delay</strong>
+                            <small>Adds a 500ms delay to simulate server api roundtrips</small>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage Simulation Panel -->
+            <div class="storage-panel glass-card">
+                <div class="storage-header">
+                    <h3><span class="icon">&#x1F4BE;</span> Client LocalStorage Simulation</h3>
+                    <span class="storage-label">Simulating Browser Sandbox</span>
+                </div>
+                <div class="storage-grid">
+                    <!-- Access Token Box -->
+                    <div class="token-storage-box" id="access-token-box">
+                        <div class="token-box-header">
+                            <span class="token-type-label access">ACCESS TOKEN</span>
+                            <span class="token-timer" id="access-timer">--:--</span>
+                        </div>
+                        <div class="token-box-status" id="access-status-badge">Empty</div>
+                        <div class="token-textarea-container">
+                            <textarea id="access-token-input" placeholder="No active Access Token in localStorage"
+                                spellcheck="false"></textarea>
+                            <div class="token-actions">
+                                <span class="character-counter" id="access-length">0 chars</span>
+                                <button class="btn-small" id="btn-tamper-access" disabled>Tamper Signature</button>
+                            </div>
+                        </div>
+                        <div class="storage-location">Stored in: <code>localStorage.getItem('access_token')</code></div>
+                    </div>
+
+                    <!-- Refresh Token Box -->
+                    <div class="token-storage-box" id="refresh-token-box">
+                        <div class="token-box-header">
+                            <span class="token-type-label refresh">REFRESH TOKEN</span>
+                            <span class="token-timer" id="refresh-timer">--:--</span>
+                        </div>
+                        <div class="token-box-status" id="refresh-status-badge">Empty</div>
+                        <div class="token-textarea-container">
+                            <textarea id="refresh-token-input" placeholder="No active Refresh Token in localStorage"
+                                spellcheck="false"></textarea>
+                            <div class="token-actions">
+                                <span class="character-counter" id="refresh-length">0 chars</span>
+                                <button class="btn-small" id="btn-tamper-refresh" disabled>Tamper Signature</button>
+                            </div>
+                        </div>
+                        <div class="storage-location">Stored in: <code>localStorage.getItem('refresh_token')</code> (or
+                            Secure HTTP-Only Cookie)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: EDUCATIONAL RESOURCES -->
+        <section class="right-panel">
+            <!-- Timeline/Stage Tracker -->
+            <div class="timeline-card glass-card">
+                <h3><span class="icon">&#x1F39B;</span> Interactive Tutorial Timeline</h3>
+                <div class="timeline-steps">
+                    <div class="timeline-step active" id="step-1" data-step="1">
+                        <div class="step-num">1</div>
+                        <div class="step-content">
+                            <h4>Login to Issue Tokens</h4>
+                            <p>Generate short-lived Access Token & long-lived Refresh Token.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step" id="step-2" data-step="2">
+                        <div class="step-num">2</div>
+                        <div class="step-content">
+                            <h4>Protected API Requests</h4>
+                            <p>Send requests with Access Token. Observe server verify signature and expiry.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step" id="step-3" data-step="3">
+                        <div class="step-num">3</div>
+                        <div class="step-content">
+                            <h4>Access Token Expiration</h4>
+                            <p>Manually expire or wait 30s. The server will reject API requests with 401.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step" id="step-4" data-step="4">
+                        <div class="step-num">4</div>
+                        <div class="step-content">
+                            <h4>Silent Token Refresh</h4>
+                            <p>Use Refresh Token to get a fresh Access Token. Seamless user experience!</p>
+                        </div>
+                    </div>
+                    <div class="timeline-step" id="step-5" data-step="5">
+                        <div class="step-num">5</div>
+                        <div class="step-content">
+                            <h4>Forced Re-authentication</h4>
+                            <p>Expire both tokens. Silent refresh fails; user must login again.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabbed Educational Panel -->
+            <div class="educational-tabs-card glass-card">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="tab-decoder">JWT Decoder</button>
+                    <button class="tab-btn" data-tab="tab-whatis">What is JWT?</button>
+                    <button class="tab-btn" data-tab="tab-lifecycle">Access vs Refresh</button>
+                    <button class="tab-btn" data-tab="tab-security">Security FAQ</button>
+                </div>
+                <div class="tabs-content-container">
+                    <!-- Tab: Interactive JWT Decoder -->
+                    <div class="tab-content active" id="tab-decoder">
+                        <h3 class="tab-title">Interactive JWT Structure Inspector</h3>
+                        <p class="tab-desc">JWT is split into three parts separated by dots (<code>.</code>).
+                            Hover/Click the sections to decode them.</p>
+
+                        <div class="decoder-container">
+                            <div class="encoded-jwt-view" id="encoded-jwt-visualizer">
+                                <span class="jwt-part jwt-header"
+                                    id="jwt-part-header">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span>.<span
+                                    class="jwt-part jwt-payload"
+                                    id="jwt-part-payload">eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ</span>.<span
+                                    class="jwt-part jwt-signature"
+                                    id="jwt-part-signature">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span>
+                            </div>
+
+                            <div class="decoded-panes">
+                                <div class="decoded-pane pane-header" id="pane-header">
+                                    <div class="pane-title">HEADER (Algorithm & Type)</div>
+                                    <pre><code id="decoded-header-json">{
+  "alg": "HS256",
+  "typ": "JWT"
+}</code></pre>
+                                </div>
+                                <div class="decoded-pane pane-payload" id="pane-payload">
+                                    <div class="pane-title">PAYLOAD (Data / Claims)</div>
+                                    <pre><code id="decoded-payload-json">{
+  "sub": "user_id_101",
+  "username": "rupam_dev",
+  "role": "admin",
+  "exp": 1782012020,
+  "iat": 1782011990
+}</code></pre>
+                                </div>
+                                <div class="decoded-pane pane-signature" id="pane-signature">
+                                    <div class="pane-title">SIGNATURE (Cryptographic Verification)</div>
+                                    <pre><code id="decoded-signature-raw">HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  "jwt-simulator-secret-2026-key"
+)</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="decoder-guide">
+                            <span class="badge info">Interactive Tip</span>
+                            <span>When you are logged in, this panel dynamically reflects whichever token you
+                                click/focus on in localStorage.</span>
+                        </div>
+                    </div>
+
+                    <!-- Tab: What is JWT? -->
+                    <div class="tab-content" id="tab-whatis">
+                        <h3 class="tab-title">What is a JSON Web Token?</h3>
+                        <div class="card-grid">
+                            <div class="info-card">
+                                <h4>Stateless Authentication</h4>
+                                <p>Instead of the server maintaining user sessions in database/memory, JWT stores the
+                                    session state inside the client token. The server verifies it cryptographically.</p>
+                            </div>
+                            <div class="info-card">
+                                <h4>Header (Red)</h4>
+                                <p>Tells the server which algorithm is used to sign the token (e.g. HS256, RS256).
+                                    Identifies the content type as a JWT.</p>
+                            </div>
+                            <div class="info-card">
+                                <h4>Payload (Magenta)</h4>
+                                <p>Contains the "claims" (statements about the user, like user ID, username, roles, and
+                                    issue/expiration timestamps). <strong>Note:</strong> Not encrypted, just encoded!
+                                </p>
+                            </div>
+                            <div class="info-card">
+                                <h4>Signature (Teal)</h4>
+                                <p>Calculated by combining the encoded header and payload with a secret key. Ensures
+                                    that if any part of the header or payload is modified, the signature becomes
+                                    invalid.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Access vs Refresh -->
+                    <div class="tab-content" id="tab-lifecycle">
+                        <h3 class="tab-title">Access Tokens vs. Refresh Tokens</h3>
+                        <p class="tab-desc">Why do we use two different tokens instead of just one? Let's check the
+                            comparison below.</p>
+
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Access Token</th>
+                                    <th>Refresh Token</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Primary Purpose</strong></td>
+                                    <td>Authorize API requests directly</td>
+                                    <td>Request new access tokens without prompt</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Lifespan</strong></td>
+                                    <td>Very short (e.g., 5 - 15 minutes)</td>
+                                    <td>Long-lived (e.g., 7 - 30 days)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Usage</strong></td>
+                                    <td>Sent on every HTTP Request header</td>
+                                    <td>Sent only when the access token expires</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Storage (Best Practice)</strong></td>
+                                    <td>In-memory variable (ideal) or localStorage</td>
+                                    <td>Secure HTTP-Only Cookie or DB-backed session</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Compromise Risk</strong></td>
+                                    <td>Low (expires rapidly, limiting hacker access)</td>
+                                    <td>High (requires strict server rotation/checks)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tab: Security FAQ -->
+                    <div class="tab-content" id="tab-security">
+                        <h3 class="tab-title">Security FAQ</h3>
+                        <div class="faq-accordion">
+                            <div class="faq-item">
+                                <h5>Q: Why do Access Tokens expire so quickly?</h5>
+                                <p>A: Because JWT is stateless. Once issued, a JWT cannot be easily revoked before
+                                    expiration without building a database blacklist (which negates the benefit of
+                                    stateless tokens). Making access tokens expire in minutes ensures that if a token is
+                                    stolen (e.g., via XSS), it becomes useless almost immediately.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h5>Q: How does Token Rotation work with Refresh Tokens?</h5>
+                                <p>A: When the client uses a Refresh Token to request a new Access Token, the server can
+                                    issue a <em>new</em> Refresh Token as well, revoking the old one (Refresh Token
+                                    Rotation). If a stolen refresh token is reused, the server detects the reuse and
+                                    invalidates the entire family of tokens, forcing immediate logout of the user.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h5>Q: Where should we store these tokens?</h5>
+                                <p>A: For high security, keep the <strong>Access Token</strong> in client memory
+                                    (JavaScript variables) and the <strong>Refresh Token</strong> in a secure HTTP-Only
+                                    cookie. This protects the Refresh Token from XSS attacks and the Access Token from
+                                    CSRF, achieving the best of both worlds.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend Card -->
+            <div class="legend-card glass-card">
+                <h3>Visual Legend</h3>
+                <div class="legend-grid">
+                    <div class="legend-group">
+                        <h4>Token States</h4>
+                        <div class="legend-items">
+                            <span class="legend-item"><span class="badge status-active">Active</span> Valid token,
+                                approved for APIs</span>
+                            <span class="legend-item"><span class="badge status-expiring">Expiring</span> Less than 10s
+                                remaining</span>
+                            <span class="legend-item"><span class="badge status-expired">Expired</span> Overdue
+                                lifespan, returns 401</span>
+                            <span class="legend-item"><span class="badge status-tampered">Invalid</span> Tampered
+                                signature, rejected</span>
+                        </div>
+                    </div>
+                    <div class="legend-group">
+                        <h4>Terminal Console Log Sources</h4>
+                        <div class="legend-items">
+                            <span class="legend-item"><span class="badge-log tag-client">CLIENT</span> Client browser
+                                actions and requests</span>
+                            <span class="legend-item"><span class="badge-log tag-server">SERVER</span> API logic,
+                                database checks</span>
+                            <span class="legend-item"><span class="badge-log tag-middleware">MIDDLEWARE</span>
+                                Interceptor verifying the signature and expiration</span>
+                            <span class="legend-item"><span class="badge-log tag-system">SYSTEM</span> Simulator engine
+                                messages</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>Built with pure HTML, CSS, and JS for Advanced JWT Education.</p>
+        <p><a href="https://github.com/MRupam202005" target="_blank" rel="noopener noreferrer"
+                style="color: #66ccff; text-decoration: none;">Rupam</a> &copy; 2026</p>
+    </footer>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+
+</html>
